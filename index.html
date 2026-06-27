@@ -15,11 +15,8 @@
     <!-- Tailwind -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-    <!-- Chart.js -->
+    <!-- Chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- XLSX Parser -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 </head>
 
@@ -27,27 +24,25 @@
 
 <div class="max-w-7xl mx-auto space-y-6">
 
-    <!-- ===================================================== -->
     <!-- HEADER -->
-    <!-- ===================================================== -->
 
     <div class="flex items-center justify-between">
 
         <div>
 
-            <h1 class="text-4xl font-bold tracking-tight">
+            <h1 class="text-4xl font-bold">
                 Talent Calibration Dashboard
             </h1>
 
             <p class="text-slate-400 mt-2">
-                Live Google Sheets XLSX Integration
+                Live Google Sheets TSV Integration
             </p>
 
         </div>
 
         <button
             onclick="refreshDashboard()"
-            class="bg-indigo-600 hover:bg-indigo-500 transition px-5 py-3 rounded-xl font-semibold shadow-lg"
+            class="bg-indigo-600 hover:bg-indigo-500 transition px-5 py-3 rounded-xl font-semibold"
         >
             🔄 Sync Data
         </button>
@@ -55,91 +50,44 @@
     </div>
 
 
-    <!-- ===================================================== -->
     <!-- STATUS -->
-    <!-- ===================================================== -->
 
     <div
         id="status"
-        class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-slate-300"
+        class="bg-slate-900 border border-slate-800 rounded-xl p-4"
     >
         Waiting for sync...
     </div>
 
 
-    <!-- ===================================================== -->
-    <!-- KPI CARDS -->
-    <!-- ===================================================== -->
+    <!-- KPI -->
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
-            <p class="text-slate-400 text-sm">
-                Headcount
-            </p>
-
-            <h2
-                id="headcount"
-                class="text-4xl font-bold mt-3"
-            >
-                --
-            </h2>
+            <p class="text-slate-400 text-sm">Headcount</p>
+            <h2 id="headcount" class="text-4xl font-bold mt-3">--</h2>
         </div>
 
-
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
-
-            <p class="text-slate-400 text-sm">
-                Avg Appraiser
-            </p>
-
-            <h2
-                id="avgAppraiser"
-                class="text-4xl font-bold mt-3 text-emerald-400"
-            >
-                --
-            </h2>
-
+            <p class="text-slate-400 text-sm">Avg Self Score</p>
+            <h2 id="avgSelf" class="text-4xl font-bold mt-3 text-cyan-400">--</h2>
         </div>
 
-
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
-
-            <p class="text-slate-400 text-sm">
-                Avg Complexity
-            </p>
-
-            <h2
-                id="avgComplexity"
-                class="text-4xl font-bold mt-3 text-indigo-400"
-            >
-                --
-            </h2>
-
+            <p class="text-slate-400 text-sm">Avg Appraiser</p>
+            <h2 id="avgAppraiser" class="text-4xl font-bold mt-3 text-emerald-400">--</h2>
         </div>
 
-
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
-
-            <p class="text-slate-400 text-sm">
-                Avg Final Score
-            </p>
-
-            <h2
-                id="avgFinal"
-                class="text-4xl font-bold mt-3 text-amber-400"
-            >
-                --
-            </h2>
-
+            <p class="text-slate-400 text-sm">Avg Final Score</p>
+            <h2 id="avgFinal" class="text-4xl font-bold mt-3 text-amber-400">--</h2>
         </div>
 
     </div>
 
 
-    <!-- ===================================================== -->
     <!-- TABLE -->
-    <!-- ===================================================== -->
 
     <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
 
@@ -155,7 +103,7 @@
 
             <table class="w-full text-sm">
 
-                <thead class="bg-slate-950 text-slate-300">
+                <thead class="bg-slate-950">
 
                     <tr>
 
@@ -177,9 +125,9 @@
 
                         <td
                             colspan="7"
-                            class="p-10 text-center text-slate-500"
+                            class="text-center p-10 text-slate-500"
                         >
-                            No data loaded
+                            Loading...
                         </td>
 
                     </tr>
@@ -193,9 +141,7 @@
     </div>
 
 
-    <!-- ===================================================== -->
     <!-- CHART -->
-    <!-- ===================================================== -->
 
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 h-[450px]">
 
@@ -210,12 +156,27 @@
 
     /*
     ============================================================
-    GOOGLE SHEETS XLSX URL
+    GOOGLE SHEETS TSV URLS
     ============================================================
     */
 
-    const XLSX_URL =
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIMi-osLQjTUoIWI-RDHkzZFqPL1AgZlbv7qZp3B78IcP1i7xeYznxgVX5fcj3q2kTLJlv3JLh1tT/pub?output=xlsx";
+    const SHEETS = {
+
+        employeeMaster:
+            "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIMi-osLQjTUoIWI-RDHkzZFqPL1AgZlbv7qZp3B78IcP1i7xeYznxgVX5fcj3q2kTLJlv3JLh1tT/pub?gid=843812363&single=true&output=tsv",
+
+        projectMetrics:
+            "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIMi-osLQjTUoIWI-RDHkzZFqPL1AgZlbv7qZp3B78IcP1i7xeYznxgVX5fcj3q2kTLJlv3JLh1tT/pub?gid=746786334&single=true&output=tsv",
+
+        selfRatings:
+            "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIMi-osLQjTUoIWI-RDHkzZFqPL1AgZlbv7qZp3B78IcP1i7xeYznxgVX5fcj3q2kTLJlv3JLh1tT/pub?gid=1510109769&single=true&output=tsv",
+
+        appraiserRatings:
+            "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIMi-osLQjTUoIWI-RDHkzZFqPL1AgZlbv7qZp3B78IcP1i7xeYznxgVX5fcj3q2kTLJlv3JLh1tT/pub?gid=477035412&single=true&output=tsv",
+
+        sampleCalibration:
+            "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIMi-osLQjTUoIWI-RDHkzZFqPL1AgZlbv7qZp3B78IcP1i7xeYznxgVX5fcj3q2kTLJlv3JLh1tT/pub?gid=1380021398&single=true&output=tsv"
+    };
 
 
     /*
@@ -231,13 +192,35 @@
 
     /*
     ============================================================
+    NORMALIZE
+    ============================================================
+    */
+
+    function clean(value) {
+
+        return String(value || "")
+            .replace(/\u00A0/g, " ")
+            .replace(/\r/g, "")
+            .replace(/\n/g, "")
+            .trim();
+    }
+
+    function key(value) {
+
+        return clean(value).toLowerCase();
+    }
+
+
+    /*
+    ============================================================
     STATUS
     ============================================================
     */
 
     function setStatus(message, type = "info") {
 
-        const el = document.getElementById("status");
+        const el =
+            document.getElementById("status");
 
         el.innerText = message;
 
@@ -275,63 +258,75 @@
 
     /*
     ============================================================
-    LOAD XLSX WORKBOOK
+    TSV PARSER
     ============================================================
     */
 
-    async function loadWorkbook() {
+    function parseTSV(text) {
 
-        const response = await fetch(XLSX_URL);
+        text = text.replace(/^\uFEFF/, '');
+
+        const lines =
+            text
+                .split('\n')
+                .filter(line => line.trim());
+
+        if (!lines.length)
+            return [];
+
+        const headers =
+            lines[0]
+                .split('\t')
+                .map(h => key(h));
+
+        return lines
+            .slice(1)
+            .map(line => {
+
+                const cols =
+                    line.split('\t');
+
+                let row = {};
+
+                headers.forEach((header, index) => {
+
+                    row[header] =
+                        clean(cols[index]);
+                });
+
+                return row;
+            });
+    }
+
+
+    /*
+    ============================================================
+    FETCH SHEET
+    ============================================================
+    */
+
+    async function fetchSheet(url) {
+
+        const response =
+            await fetch(url);
 
         if (!response.ok) {
+
             throw new Error(
-                "Failed to fetch Google Sheets workbook"
+                "Failed to fetch sheet"
             );
         }
 
-        const arrayBuffer =
-            await response.arrayBuffer();
+        const text =
+            await response.text();
 
-        return XLSX.read(
-            arrayBuffer,
-            {
-                type: "array"
-            }
-        );
+        return parseTSV(text);
     }
 
 
     /*
     ============================================================
-    READ SHEET
-    ============================================================
-    */
-
-    function getSheet(workbook, sheetName) {
-
-        const worksheet =
-            workbook.Sheets[sheetName];
-
-        if (!worksheet) {
-
-            throw new Error(
-                `Sheet not found: ${sheetName}`
-            );
-        }
-
-        return XLSX.utils.sheet_to_json(
-            worksheet,
-            {
-                raw: false,
-                defval: ""
-            }
-        );
-    }
-
-
-    /*
-    ============================================================
-    MAIN REFRESH
+    MAIN LOAD
     ============================================================
     */
 
@@ -340,88 +335,129 @@
         try {
 
             setStatus(
-                "Loading workbook...",
+                "Loading sheets...",
                 "info"
             );
 
-            const workbook =
-                await loadWorkbook();
+
+            const [
+
+                employeeMaster,
+
+                projectMetrics,
+
+                selfRatings,
+
+                appraiserRatings
+
+            ] = await Promise.all([
+
+                fetchSheet(
+                    SHEETS.employeeMaster
+                ),
+
+                fetchSheet(
+                    SHEETS.projectMetrics
+                ),
+
+                fetchSheet(
+                    SHEETS.selfRatings
+                ),
+
+                fetchSheet(
+                    SHEETS.appraiserRatings
+                )
+            ]);
+
+
+            console.log(
+                employeeMaster,
+                projectMetrics,
+                selfRatings,
+                appraiserRatings
+            );
 
 
             /*
             ====================================================
-            SHEETS
+            PROJECT COMPLEXITY
             ====================================================
+
+            Complexity Formula:
+            Average of:
+            Delivery
+            Quality
+            Technical
+            Collaboration
+            Innovation
+            Customer
             */
 
-            const employeeMaster =
-                getSheet(
-                    workbook,
-                    "Employee_Master"
-                );
+            const projectMap = {};
 
-            const projectMetrics =
-                getSheet(
-                    workbook,
-                    "Project_Metrics"
-                );
+            projectMetrics.forEach(row => {
 
-            const selfRatings =
-                getSheet(
-                    workbook,
-                    "Self_Ratings_Data"
-                );
+                const project =
+                    key(row["project"]);
 
-            const appraiserRatings =
-                getSheet(
-                    workbook,
-                    "Appraiser_Ratings_Data"
-                );
+                const metrics = [
+
+                    parseFloat(row["delivery"]) || 0,
+                    parseFloat(row["quality"]) || 0,
+                    parseFloat(row["technical"]) || 0,
+                    parseFloat(row["collaboration"]) || 0,
+                    parseFloat(row["innovation"]) || 0,
+                    parseFloat(row["customer"]) || 0
+                ];
+
+                const complexity =
+                    metrics.reduce(
+                        (a, b) => a + b,
+                        0
+                    ) / metrics.length;
+
+                projectMap[project] =
+                    complexity;
+            });
 
 
             /*
             ====================================================
-            LOOKUP MAPS
+            SELF MAP
             ====================================================
             */
 
             const selfMap = {};
 
-            const appraiserMap = {};
-
-            const projectMap = {};
-
-
             selfRatings.forEach(row => {
 
                 const empId =
-                    String(
-                        row["Emp ID"]
-                    ).trim();
+                    key(row["emp id"]);
 
-                selfMap[empId] = row;
+                selfMap[empId] =
+                    parseFloat(
+                        row["weighted score"]
+                    ) || 0;
             });
 
+
+            /*
+            ====================================================
+            APPRAISER MAP
+            ====================================================
+            */
+
+            const appraiserMap = {};
 
             appraiserRatings.forEach(row => {
 
                 const empId =
-                    String(
-                        row["Emp ID"]
-                    ).trim();
+                    key(row["emp id"]);
 
-                appraiserMap[empId] = row;
-            });
-
-
-            projectMetrics.forEach(row => {
-
-                const project =
-                    String(
-                        row["Project"]
-                    ).trim();
-
-                projectMap[project] = row;
+                appraiserMap[empId] =
+                    parseFloat(
+                        row["weighted score"]
+                    ) || 0;
             });
 
 
@@ -435,40 +471,19 @@
                 employeeMaster.map(emp => {
 
                 const empId =
-                    String(
-                        emp["Emp ID"]
-                    ).trim();
+                    key(emp["emp id"]);
 
                 const project =
-                    String(
-                        emp["Project"]
-                    ).trim();
-
-                const self =
-                    selfMap[empId] || {};
-
-                const appraiser =
-                    appraiserMap[empId] || {};
-
-                const metric =
-                    projectMap[project] || {};
-
+                    key(emp["project"]);
 
                 const selfScore =
-                    parseFloat(
-                        self["Weighted Score"]
-                    ) || 0;
+                    selfMap[empId] || 0;
 
                 const appraiserScore =
-                    parseFloat(
-                        appraiser["Weighted Score"]
-                    ) || 0;
+                    appraiserMap[empId] || 0;
 
                 const complexity =
-                    parseFloat(
-                        metric["Project Complexity Factor"]
-                    ) || 1;
-
+                    projectMap[project] || 1;
 
                 const finalScore =
                     Number(
@@ -478,24 +493,23 @@
                         ).toFixed(2)
                     );
 
-
                 return {
 
-                    empId,
+                    empId:
+                        emp["emp id"],
 
                     name:
-                        emp["Name"] || "",
+                        emp["name"],
 
-                    manager:
-                        emp["Manager"] || "",
-
-                    project,
+                    project:
+                        emp["project"],
 
                     selfScore,
 
                     appraiserScore,
 
-                    complexity,
+                    complexity:
+                        complexity.toFixed(2),
 
                     finalScore
                 };
@@ -516,7 +530,6 @@
                 "Dashboard synced successfully.",
                 "success"
             );
-
         }
 
         catch (err) {
@@ -533,7 +546,7 @@
 
     /*
     ============================================================
-    KPI RENDER
+    KPI
     ============================================================
     */
 
@@ -542,21 +555,24 @@
         const count =
             masterMatrix.length;
 
-        const avgAppraiser =
+        const avgSelf =
             masterMatrix.reduce(
-                (a, b) => a + b.appraiserScore,
+                (a, b) =>
+                    a + b.selfScore,
                 0
             ) / count;
 
-        const avgComplexity =
+        const avgAppraiser =
             masterMatrix.reduce(
-                (a, b) => a + b.complexity,
+                (a, b) =>
+                    a + b.appraiserScore,
                 0
             ) / count;
 
         const avgFinal =
             masterMatrix.reduce(
-                (a, b) => a + b.finalScore,
+                (a, b) =>
+                    a + b.finalScore,
                 0
             ) / count;
 
@@ -566,14 +582,14 @@
         ).innerText = count;
 
         document.getElementById(
+            "avgSelf"
+        ).innerText =
+            avgSelf.toFixed(2);
+
+        document.getElementById(
             "avgAppraiser"
         ).innerText =
             avgAppraiser.toFixed(2);
-
-        document.getElementById(
-            "avgComplexity"
-        ).innerText =
-            avgComplexity.toFixed(2);
 
         document.getElementById(
             "avgFinal"
@@ -584,7 +600,7 @@
 
     /*
     ============================================================
-    TABLE RENDER
+    TABLE
     ============================================================
     */
 
@@ -688,6 +704,7 @@
                     Object.keys(buckets),
 
                 datasets: [{
+
                     data:
                         Object.values(buckets)
                 }]
@@ -723,4 +740,3 @@
 </body>
 
 </html>
-```
