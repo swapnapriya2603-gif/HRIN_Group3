@@ -1,18 +1,24 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
 
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    />
 
     <title>Talent Calibration Dashboard</title>
 
+    <!-- Tailwind -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- XLSX Parser -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 </head>
@@ -21,23 +27,27 @@
 
 <div class="max-w-7xl mx-auto space-y-6">
 
+    <!-- ===================================================== -->
     <!-- HEADER -->
+    <!-- ===================================================== -->
 
     <div class="flex items-center justify-between">
 
         <div>
-            <h1 class="text-4xl font-bold">
+
+            <h1 class="text-4xl font-bold tracking-tight">
                 Talent Calibration Dashboard
             </h1>
 
-            <p class="text-slate-400 mt-1">
+            <p class="text-slate-400 mt-2">
                 Live Google Sheets XLSX Integration
             </p>
+
         </div>
 
         <button
             onclick="refreshDashboard()"
-            class="bg-indigo-600 hover:bg-indigo-500 px-5 py-3 rounded-xl font-semibold shadow-lg"
+            class="bg-indigo-600 hover:bg-indigo-500 transition px-5 py-3 rounded-xl font-semibold shadow-lg"
         >
             🔄 Sync Data
         </button>
@@ -45,51 +55,100 @@
     </div>
 
 
+    <!-- ===================================================== -->
     <!-- STATUS -->
+    <!-- ===================================================== -->
 
     <div
         id="status"
-        class="bg-slate-800 border border-slate-700 rounded-xl p-4"
+        class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-slate-300"
     >
         Waiting for sync...
     </div>
 
 
+    <!-- ===================================================== -->
     <!-- KPI CARDS -->
+    <!-- ===================================================== -->
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-        <div class="bg-slate-900 rounded-xl p-5 border border-slate-800">
-            <p class="text-slate-400 text-sm">Headcount</p>
-            <h2 id="headcount" class="text-4xl font-bold mt-2">--</h2>
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+            <p class="text-slate-400 text-sm">
+                Headcount
+            </p>
+
+            <h2
+                id="headcount"
+                class="text-4xl font-bold mt-3"
+            >
+                --
+            </h2>
         </div>
 
-        <div class="bg-slate-900 rounded-xl p-5 border border-slate-800">
-            <p class="text-slate-400 text-sm">Avg Appraiser</p>
-            <h2 id="avgAppraiser" class="text-4xl font-bold mt-2 text-emerald-400">--</h2>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+
+            <p class="text-slate-400 text-sm">
+                Avg Appraiser
+            </p>
+
+            <h2
+                id="avgAppraiser"
+                class="text-4xl font-bold mt-3 text-emerald-400"
+            >
+                --
+            </h2>
+
         </div>
 
-        <div class="bg-slate-900 rounded-xl p-5 border border-slate-800">
-            <p class="text-slate-400 text-sm">Avg Complexity</p>
-            <h2 id="avgComplexity" class="text-4xl font-bold mt-2 text-indigo-400">--</h2>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+
+            <p class="text-slate-400 text-sm">
+                Avg Complexity
+            </p>
+
+            <h2
+                id="avgComplexity"
+                class="text-4xl font-bold mt-3 text-indigo-400"
+            >
+                --
+            </h2>
+
         </div>
 
-        <div class="bg-slate-900 rounded-xl p-5 border border-slate-800">
-            <p class="text-slate-400 text-sm">Avg Final Score</p>
-            <h2 id="avgFinal" class="text-4xl font-bold mt-2 text-amber-400">--</h2>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+
+            <p class="text-slate-400 text-sm">
+                Avg Final Score
+            </p>
+
+            <h2
+                id="avgFinal"
+                class="text-4xl font-bold mt-3 text-amber-400"
+            >
+                --
+            </h2>
+
         </div>
 
     </div>
 
 
+    <!-- ===================================================== -->
     <!-- TABLE -->
+    <!-- ===================================================== -->
 
     <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
 
         <div class="p-5 border-b border-slate-800">
+
             <h3 class="text-xl font-semibold">
                 Employee Calibration Matrix
             </h3>
+
         </div>
 
         <div class="overflow-x-auto">
@@ -115,9 +174,14 @@
                 <tbody id="tableBody">
 
                     <tr>
-                        <td colspan="7" class="text-center p-10 text-slate-500">
+
+                        <td
+                            colspan="7"
+                            class="p-10 text-center text-slate-500"
+                        >
                             No data loaded
                         </td>
+
                     </tr>
 
                 </tbody>
@@ -129,7 +193,9 @@
     </div>
 
 
+    <!-- ===================================================== -->
     <!-- CHART -->
+    <!-- ===================================================== -->
 
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 h-[450px]">
 
@@ -144,16 +210,8 @@
 
     /*
     ============================================================
-    GOOGLE SHEETS XLSX EXPORT URL
+    GOOGLE SHEETS XLSX URL
     ============================================================
-
-    File → Share → Publish to web
-
-    Publish ENTIRE DOCUMENT.
-
-    Then use:
-
-    https://docs.google.com/spreadsheets/d/e/SPREADSHEET_ID/pub?output=xlsx
     */
 
     const XLSX_URL =
@@ -166,9 +224,9 @@
     ============================================================
     */
 
-    let chartInstance = null;
-
     let masterMatrix = [];
+
+    let chartInstance = null;
 
 
     /*
@@ -189,7 +247,7 @@
         if (type === "success") {
 
             el.classList.add(
-                "bg-emerald-950/40",
+                "bg-emerald-950/30",
                 "border-emerald-700",
                 "text-emerald-300"
             );
@@ -198,7 +256,7 @@
         else if (type === "error") {
 
             el.classList.add(
-                "bg-red-950/40",
+                "bg-red-950/30",
                 "border-red-700",
                 "text-red-300"
             );
@@ -207,7 +265,7 @@
         else {
 
             el.classList.add(
-                "bg-blue-950/40",
+                "bg-blue-950/30",
                 "border-blue-700",
                 "text-blue-300"
             );
@@ -217,7 +275,7 @@
 
     /*
     ============================================================
-    LOAD XLSX
+    LOAD XLSX WORKBOOK
     ============================================================
     */
 
@@ -226,29 +284,39 @@
         const response = await fetch(XLSX_URL);
 
         if (!response.ok) {
-            throw new Error("Failed to fetch XLSX workbook");
+            throw new Error(
+                "Failed to fetch Google Sheets workbook"
+            );
         }
 
-        const arrayBuffer = await response.arrayBuffer();
+        const arrayBuffer =
+            await response.arrayBuffer();
 
-        return XLSX.read(arrayBuffer, {
-            type: "array"
-        });
+        return XLSX.read(
+            arrayBuffer,
+            {
+                type: "array"
+            }
+        );
     }
 
 
     /*
     ============================================================
-    CONVERT SHEET TO JSON
+    READ SHEET
     ============================================================
     */
 
     function getSheet(workbook, sheetName) {
 
-        const worksheet = workbook.Sheets[sheetName];
+        const worksheet =
+            workbook.Sheets[sheetName];
 
         if (!worksheet) {
-            throw new Error(`Sheet not found: ${sheetName}`);
+
+            throw new Error(
+                `Sheet not found: ${sheetName}`
+            );
         }
 
         return XLSX.utils.sheet_to_json(
@@ -263,7 +331,7 @@
 
     /*
     ============================================================
-    MAIN SYNC
+    MAIN REFRESH
     ============================================================
     */
 
@@ -279,23 +347,36 @@
             const workbook =
                 await loadWorkbook();
 
+
             /*
             ====================================================
-            SHEET NAMES
+            SHEETS
             ====================================================
             */
 
             const employeeMaster =
-                getSheet(workbook, "Employee_Master");
+                getSheet(
+                    workbook,
+                    "Employee_Master"
+                );
 
             const projectMetrics =
-                getSheet(workbook, "Project_Metrics");
+                getSheet(
+                    workbook,
+                    "Project_Metrics"
+                );
 
             const selfRatings =
-                getSheet(workbook, "Self_Ratings_Data");
+                getSheet(
+                    workbook,
+                    "Self_Ratings_Data"
+                );
 
             const appraiserRatings =
-                getSheet(workbook, "Appraiser_Ratings_Data");
+                getSheet(
+                    workbook,
+                    "Appraiser_Ratings_Data"
+                );
 
 
             /*
@@ -305,31 +386,42 @@
             */
 
             const selfMap = {};
+
             const appraiserMap = {};
+
             const projectMap = {};
 
-            selfRatings.forEach(r => {
+
+            selfRatings.forEach(row => {
 
                 const empId =
-                    String(r["Emp ID"]).trim();
+                    String(
+                        row["Emp ID"]
+                    ).trim();
 
-                selfMap[empId] = r;
+                selfMap[empId] = row;
             });
 
-            appraiserRatings.forEach(r => {
+
+            appraiserRatings.forEach(row => {
 
                 const empId =
-                    String(r["Emp ID"]).trim();
+                    String(
+                        row["Emp ID"]
+                    ).trim();
 
-                appraiserMap[empId] = r;
+                appraiserMap[empId] = row;
             });
 
-            projectMetrics.forEach(r => {
+
+            projectMetrics.forEach(row => {
 
                 const project =
-                    String(r["Project"]).trim();
+                    String(
+                        row["Project"]
+                    ).trim();
 
-                projectMap[project] = r;
+                projectMap[project] = row;
             });
 
 
@@ -339,13 +431,18 @@
             ====================================================
             */
 
-            masterMatrix = employeeMaster.map(emp => {
+            masterMatrix =
+                employeeMaster.map(emp => {
 
                 const empId =
-                    String(emp["Emp ID"]).trim();
+                    String(
+                        emp["Emp ID"]
+                    ).trim();
 
                 const project =
-                    String(emp["Project"]).trim();
+                    String(
+                        emp["Project"]
+                    ).trim();
 
                 const self =
                     selfMap[empId] || {};
@@ -355,6 +452,7 @@
 
                 const metric =
                     projectMap[project] || {};
+
 
                 const selfScore =
                     parseFloat(
@@ -371,11 +469,15 @@
                         metric["Project Complexity Factor"]
                     ) || 1;
 
+
                 const finalScore =
                     Number(
-                        (appraiserScore * complexity)
-                        .toFixed(2)
+                        (
+                            appraiserScore *
+                            complexity
+                        ).toFixed(2)
                     );
+
 
                 return {
 
@@ -400,11 +502,15 @@
             });
 
 
+            console.log(masterMatrix);
+
+
             renderKPIs();
 
             renderTable();
 
             renderChart();
+
 
             setStatus(
                 "Dashboard synced successfully.",
@@ -427,7 +533,7 @@
 
     /*
     ============================================================
-    KPI CARDS
+    KPI RENDER
     ============================================================
     */
 
@@ -454,37 +560,49 @@
                 0
             ) / count;
 
-        document.getElementById("headcount")
-            .innerText = count;
 
-        document.getElementById("avgAppraiser")
-            .innerText = avgAppraiser.toFixed(2);
+        document.getElementById(
+            "headcount"
+        ).innerText = count;
 
-        document.getElementById("avgComplexity")
-            .innerText = avgComplexity.toFixed(2);
+        document.getElementById(
+            "avgAppraiser"
+        ).innerText =
+            avgAppraiser.toFixed(2);
 
-        document.getElementById("avgFinal")
-            .innerText = avgFinal.toFixed(2);
+        document.getElementById(
+            "avgComplexity"
+        ).innerText =
+            avgComplexity.toFixed(2);
+
+        document.getElementById(
+            "avgFinal"
+        ).innerText =
+            avgFinal.toFixed(2);
     }
 
 
     /*
     ============================================================
-    TABLE
+    TABLE RENDER
     ============================================================
     */
 
     function renderTable() {
 
         const tbody =
-            document.getElementById("tableBody");
+            document.getElementById(
+                "tableBody"
+            );
 
         tbody.innerHTML =
             masterMatrix.map(row => `
 
                 <tr class="border-b border-slate-800 hover:bg-slate-800/40">
 
-                    <td class="p-4">${row.empId}</td>
+                    <td class="p-4">
+                        ${row.empId}
+                    </td>
 
                     <td class="p-4 font-semibold">
                         ${row.name}
@@ -532,6 +650,7 @@
             Exceptional: 0
         };
 
+
         masterMatrix.forEach(emp => {
 
             if (emp.finalScore < 2.5)
@@ -547,13 +666,19 @@
                 buckets.Exceptional++;
         });
 
+
         const ctx =
-            document.getElementById("scoreChart");
+            document.getElementById(
+                "scoreChart"
+            );
+
 
         if (chartInstance)
             chartInstance.destroy();
 
-        chartInstance = new Chart(ctx, {
+
+        chartInstance =
+            new Chart(ctx, {
 
             type: "bar",
 
@@ -584,8 +709,18 @@
         });
     }
 
+
+    /*
+    ============================================================
+    AUTO LOAD
+    ============================================================
+    */
+
+    refreshDashboard();
+
 </script>
 
 </body>
+
 </html>
 ```
