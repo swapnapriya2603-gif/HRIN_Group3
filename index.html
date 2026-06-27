@@ -1,451 +1,561 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HR Analytics AI Dashboard</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HR Performance Analytics Dashboard</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <style>
-    body {
-      background: #0f172a;
-      color: black;
-      font-family: Arial, sans-serif;
-    }
-    .card {
-      background: #1e293b;
-      border-radius: 14px;
-      padding: 18px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    }
-    textarea, input {
-      color: black;
-    }
-    pre {
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-  </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body class="p-6">
+<body class="bg-slate-900 text-white min-h-screen p-6">
 
-  <div class="max-w-7xl mx-auto space-y-6">
+    <div class="max-w-7xl mx-auto space-y-6">
 
-    <div class="card">
-      <h1 class="text-3xl font-bold mb-4">HR Analytics AI Dashboard</h1>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold">Talent Calibration Dashboard</h1>
+                <p class="text-slate-400 text-sm">
+                    Live Google Sheets Integration
+                </p>
+            </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-        <div>
-          <label class="font-semibold">Groq API Key</label>
-          <input id="apiKey"
-                 type="password"
-                 class="w-full p-3 rounded mt-2"
-                 placeholder="gsk_..." />
+            <button
+                onclick="refreshAllData()"
+                class="bg-indigo-600 hover:bg-indigo-500 px-5 py-2 rounded-lg font-medium"
+            >
+                🔄 Sync Data
+            </button>
         </div>
 
-        <div>
-          <label class="font-semibold">Google Sheet URL</label>
-          <input id="sheetUrl"
-                 type="text"
-                 class="w-full p-3 rounded mt-2"
-                 value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTKoh8d2RaxpwcT9BXtq3bqXQoVQKycqT6MAJ9VEpvqDUQ94JfFYp3QSQJaNucJiAxAOuYm_YZFyzZq/pubhtml"
-          />
+        <div
+            id="statusBox"
+            class="bg-slate-800 border border-slate-700 rounded-lg p-4 text-sm"
+        >
+            Waiting for sync...
         </div>
 
-      </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-      <div class="mt-4">
-        <label class="font-semibold">Prompt</label>
-        <textarea id="prompt"
-                  rows="5"
-                  class="w-full p-3 rounded mt-2"
-                  placeholder="Example: Analyze employee performance trends, identify top performers, attrition risks, training gaps, and create executive insights dashboard.">Analyze employee performance trends, identify top performers, low performers, department-wise productivity, KPI distribution, attrition risk indicators, and provide HR recommendations.</textarea>
-      </div>
+            <div class="bg-slate-800 p-5 rounded-xl">
+                <p class="text-slate-400 text-sm">Headcount</p>
+                <h2 id="headcount" class="text-3xl font-bold mt-2">--</h2>
+            </div>
 
-      <div class="mt-4 flex gap-3">
-        <button onclick="runAnalysis()"
-                class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded font-semibold">
-          Run AI Analysis
-        </button>
+            <div class="bg-slate-800 p-5 rounded-xl">
+                <p class="text-slate-400 text-sm">Avg Appraiser</p>
+                <h2 id="avgAppraiser" class="text-3xl font-bold mt-2 text-emerald-400">--</h2>
+            </div>
 
-        <button onclick="loadSheetData()"
-                class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded font-semibold">
-          Preview Sheet
-        </button>
-      </div>
+            <div class="bg-slate-800 p-5 rounded-xl">
+                <p class="text-slate-400 text-sm">Avg Complexity</p>
+                <h2 id="avgComplexity" class="text-3xl font-bold mt-2 text-indigo-400">--</h2>
+            </div>
+
+            <div class="bg-slate-800 p-5 rounded-xl">
+                <p class="text-slate-400 text-sm">Avg Final Score</p>
+                <h2 id="avgFinal" class="text-3xl font-bold mt-2 text-amber-400">--</h2>
+            </div>
+
+        </div>
+
+        <div class="bg-slate-800 rounded-xl overflow-hidden">
+
+            <div class="p-4 border-b border-slate-700">
+                <h3 class="font-semibold">Employee Calibration Matrix</h3>
+            </div>
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full text-sm">
+
+                    <thead class="bg-slate-900 text-slate-300">
+                        <tr>
+                            <th class="p-3 text-left">Emp ID</th>
+                            <th class="p-3 text-left">Name</th>
+                            <th class="p-3 text-left">Project</th>
+                            <th class="p-3 text-center">Self</th>
+                            <th class="p-3 text-center">Appraiser</th>
+                            <th class="p-3 text-center">Complexity</th>
+                            <th class="p-3 text-right">Final</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="7" class="text-center p-8 text-slate-500">
+                                No data loaded
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+        </div>
+
+        <div class="bg-slate-800 rounded-xl p-6 h-[450px]">
+            <canvas id="scoreChart"></canvas>
+        </div>
+
     </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="card">
-        <h3 class="text-gray-300">Employees</h3>
-        <p id="employeeCount" class="text-3xl font-bold mt-2">0</p>
-      </div>
-
-      <div class="card">
-        <h3 class="text-gray-300">Avg Performance</h3>
-        <p id="avgPerf" class="text-3xl font-bold mt-2">0</p>
-      </div>
-
-      <div class="card">
-        <h3 class="text-gray-300">Top Department</h3>
-        <p id="topDept" class="text-xl font-bold mt-2">-</p>
-      </div>
-
-      <div class="card">
-        <h3 class="text-gray-300">High Performers</h3>
-        <p id="highPerformers" class="text-3xl font-bold mt-2">0</p>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-      <div class="card">
-        <h2 class="text-xl font-bold mb-4">Department Performance</h2>
-        <canvas id="deptChart"></canvas>
-      </div>
-
-      <div class="card">
-        <h2 class="text-xl font-bold mb-4">Performance Distribution</h2>
-        <canvas id="perfChart"></canvas>
-      </div>
-
-    </div>
-
-    <div class="card">
-      <h2 class="text-2xl font-bold mb-4">AI Insights</h2>
-      <div id="loading" class="hidden text-yellow-400 mb-4">
-        Running Groq AI analysis...
-      </div>
-
-      <pre id="aiOutput" class="bg-black p-4 rounded text-green-300"></pre>
-    </div>
-
-    <div class="card">
-      <h2 class="text-2xl font-bold mb-4">Sheet Preview</h2>
-
-      <div class="overflow-auto">
-        <table id="dataTable" class="min-w-full text-sm"></table>
-      </div>
-    </div>
-
-  </div>
 
 <script>
 
-let globalData = [];
+    /*
+    ============================================================
+    GOOGLE SHEETS CONFIGURATION
+    ============================================================
 
-function convertToCSVUrl(url) {
-    return url.replace('/pubhtml', '/pub?output=csv');
-}
+    IMPORTANT:
+    Publish EACH SHEET individually as CSV.
 
-async function fetchCSV(url) {
-    const response = await fetch(url);
-    return await response.text();
-}
+    File → Share → Publish to web
 
-function parseCSV(csv) {
-    const rows = csv.split('\n').map(r => r.split(','));
-    const headers = rows[0];
+    Choose:
+    - Sheet name
+    - CSV format
 
-    return rows.slice(1)
-        .filter(r => r.length > 1)
-        .map(row => {
-            let obj = {};
-            headers.forEach((h, i) => {
-                obj[h.trim()] = row[i] ? row[i].trim() : "";
-            });
-            return obj;
-        });
-}
+    Then paste URLs below.
+    */
 
-function detectPerformanceColumn(row) {
-    const keys = Object.keys(row);
+    const SHEETS = {
 
-    return keys.find(k =>
-        k.toLowerCase().includes('performance') ||
-        k.toLowerCase().includes('score') ||
-        k.toLowerCase().includes('rating') ||
-        k.toLowerCase().includes('kpi')
-    );
-}
+        employeeMaster:
+            "PASTE_EMPLOYEE_MASTER_CSV_URL_HERE",
 
-function detectDepartmentColumn(row) {
-    const keys = Object.keys(row);
+        projectMetrics:
+            "PASTE_PROJECT_METRICS_CSV_URL_HERE",
 
-    return keys.find(k =>
-        k.toLowerCase().includes('department') ||
-        k.toLowerCase().includes('team') ||
-        k.toLowerCase().includes('division')
-    );
-}
+        selfRatings:
+            "PASTE_SELF_RATINGS_CSV_URL_HERE",
 
-async function loadSheetData() {
-
-    try {
-
-        const sheetUrl = document.getElementById('sheetUrl').value;
-
-        const csvUrl = convertToCSVUrl(sheetUrl);
-
-        const csv = await fetchCSV(csvUrl);
-
-        const data = parseCSV(csv);
-
-        globalData = data;
-
-        renderTable(data);
-
-        buildMetrics(data);
-
-        buildCharts(data);
-
-    } catch (err) {
-        alert("Unable to load Google Sheet. Make sure the sheet is public.");
-        console.error(err);
-    }
-}
-
-function renderTable(data) {
-
-    const table = document.getElementById('dataTable');
-
-    if (!data.length) {
-        table.innerHTML = "<tr><td>No data found</td></tr>";
-        return;
-    }
-
-    const headers = Object.keys(data[0]);
-
-    let html = `
-      <thead>
-        <tr class="bg-slate-700">
-          ${headers.map(h => `<th class="p-2 border">${h}</th>`).join('')}
-        </tr>
-      </thead>
-      <tbody>
-    `;
-
-    data.slice(0, 20).forEach(row => {
-        html += `
-          <tr>
-            ${headers.map(h => `<td class="p-2 border">${row[h]}</td>`).join('')}
-          </tr>
-        `;
-    });
-
-    html += '</tbody>';
-
-    table.innerHTML = html;
-}
-
-function buildMetrics(data) {
-
-    if (!data.length) return;
-
-    const perfCol = detectPerformanceColumn(data[0]);
-    const deptCol = detectDepartmentColumn(data[0]);
-
-    let perfValues = [];
-
-    data.forEach(r => {
-        const val = parseFloat(r[perfCol]);
-        if (!isNaN(val)) perfValues.push(val);
-    });
-
-    const avgPerf = perfValues.reduce((a,b)=>a+b,0) / perfValues.length;
-
-    const highPerformers = perfValues.filter(v => v >= 4).length;
-
-    let deptMap = {};
-
-    data.forEach(r => {
-        const dept = r[deptCol] || 'Unknown';
-
-        if (!deptMap[dept]) deptMap[dept] = 0;
-
-        deptMap[dept]++;
-    });
-
-    const topDept = Object.entries(deptMap)
-        .sort((a,b)=>b[1]-a[1])[0]?.[0] || '-';
-
-    document.getElementById('employeeCount').innerText = data.length;
-    document.getElementById('avgPerf').innerText = avgPerf.toFixed(2);
-    document.getElementById('topDept').innerText = topDept;
-    document.getElementById('highPerformers').innerText = highPerformers;
-}
-
-let deptChartInstance = null;
-let perfChartInstance = null;
-
-function buildCharts(data) {
-
-    if (!data.length) return;
-
-    const perfCol = detectPerformanceColumn(data[0]);
-    const deptCol = detectDepartmentColumn(data[0]);
-
-    let deptScores = {};
-
-    data.forEach(r => {
-
-        const dept = r[deptCol] || 'Unknown';
-        const perf = parseFloat(r[perfCol]);
-
-        if (!isNaN(perf)) {
-
-            if (!deptScores[dept]) {
-                deptScores[dept] = [];
-            }
-
-            deptScores[dept].push(perf);
-        }
-    });
-
-    const labels = Object.keys(deptScores);
-
-    const averages = labels.map(l => {
-        const arr = deptScores[l];
-        return arr.reduce((a,b)=>a+b,0) / arr.length;
-    });
-
-    if (deptChartInstance) deptChartInstance.destroy();
-
-    deptChartInstance = new Chart(
-        document.getElementById('deptChart'),
-        {
-            type: 'bar',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'Average Performance',
-                    data: averages
-                }]
-            }
-        }
-    );
-
-    const perfValues = data.map(r => parseFloat(r[perfCol]))
-                           .filter(v => !isNaN(v));
-
-    let buckets = {
-        "1-2":0,
-        "2-3":0,
-        "3-4":0,
-        "4-5":0
+        appraiserRatings:
+            "PASTE_APPRAISER_RATINGS_CSV_URL_HERE"
     };
 
-    perfValues.forEach(v => {
-        if (v < 2) buckets["1-2"]++;
-        else if (v < 3) buckets["2-3"]++;
-        else if (v < 4) buckets["3-4"]++;
-        else buckets["4-5"]++;
-    });
 
-    if (perfChartInstance) perfChartInstance.destroy();
+    /*
+    ============================================================
+    GLOBAL DATA
+    ============================================================
+    */
 
-    perfChartInstance = new Chart(
-        document.getElementById('perfChart'),
-        {
-            type: 'pie',
-            data: {
-                labels: Object.keys(buckets),
-                datasets: [{
-                    data: Object.values(buckets)
-                }]
+    let parsedData = {
+        employeeMaster: [],
+        projectMetrics: [],
+        selfRatings: [],
+        appraiserRatings: []
+    };
+
+    let masterMatrix = [];
+
+    let chartInstance = null;
+
+
+    /*
+    ============================================================
+    CSV PARSER
+    ============================================================
+    */
+
+    function splitCSVLine(line) {
+
+        let result = [];
+        let current = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < line.length; i++) {
+
+            const char = line[i];
+
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            }
+            else if (char === ',' && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+            }
+            else {
+                current += char;
             }
         }
-    );
-}
 
-async function runAnalysis() {
+        result.push(current.trim());
 
-    const apiKey = document.getElementById('apiKey').value;
-    const prompt = document.getElementById('prompt').value;
-
-    if (!apiKey) {
-        alert("Enter Groq API key");
-        return;
+        return result.map(v =>
+            v.replace(/^"(.*)"$/, '$1')
+        );
     }
 
-    if (!globalData.length) {
-        await loadSheetData();
+    function parseCSV(text) {
+
+        const lines = text
+            .split('\n')
+            .map(l => l.trim())
+            .filter(Boolean);
+
+        if (!lines.length) return [];
+
+        const headers = splitCSVLine(lines[0]);
+
+        return lines.slice(1).map(line => {
+
+            const values = splitCSVLine(line);
+
+            let row = {};
+
+            headers.forEach((header, index) => {
+                row[header] = values[index] || '';
+            });
+
+            return row;
+        });
     }
 
-    document.getElementById('loading').classList.remove('hidden');
 
-    try {
+    /*
+    ============================================================
+    FETCH SHEET
+    ============================================================
+    */
 
-        const datasetPreview = JSON.stringify(globalData.slice(0, 50));
+    async function fetchSheet(url) {
 
-        const fullPrompt = `
-You are an HR Analytics expert.
+        const response = await fetch(url);
 
-Analyze the employee performance dataset below.
+        if (!response.ok) {
+            throw new Error(`Failed to fetch: ${url}`);
+        }
 
-Dataset:
-${datasetPreview}
+        const csv = await response.text();
 
-Task:
-${prompt}
+        return parseCSV(csv);
+    }
 
-Return:
-1. Executive Summary
-2. Key HR Insights
-3. Performance Trends
-4. Attrition Risk Indicators
-5. Top Performers
-6. Low Performers
-7. Recommended Actions
-8. Dashboard KPIs
-`;
 
-        const response = await fetch(
-            "https://api.groq.com/openai/v1/chat/completions",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [
-                        {
-                            role: "user",
-                            content: fullPrompt
-                        }
-                    ],
-                    temperature: 0.3
-                })
-            }
+    /*
+    ============================================================
+    REFRESH ALL DATA
+    ============================================================
+    */
+
+    async function refreshAllData() {
+
+        try {
+
+            setStatus("Loading Google Sheets data...", "blue");
+
+            const [
+                employeeMaster,
+                projectMetrics,
+                selfRatings,
+                appraiserRatings
+            ] = await Promise.all([
+
+                fetchSheet(SHEETS.employeeMaster),
+                fetchSheet(SHEETS.projectMetrics),
+                fetchSheet(SHEETS.selfRatings),
+                fetchSheet(SHEETS.appraiserRatings)
+
+            ]);
+
+            parsedData.employeeMaster = employeeMaster;
+            parsedData.projectMetrics = projectMetrics;
+            parsedData.selfRatings = selfRatings;
+            parsedData.appraiserRatings = appraiserRatings;
+
+            compileMasterMatrix();
+
+            calculateKPIs();
+
+            renderTable();
+
+            renderChart();
+
+            setStatus("Dashboard synced successfully.", "green");
+
+        }
+        catch (err) {
+
+            console.error(err);
+
+            setStatus(err.message, "red");
+        }
+    }
+
+
+    /*
+    ============================================================
+    COMPILE MATRIX
+    ============================================================
+    */
+
+    function compileMasterMatrix() {
+
+        const selfMap = Object.fromEntries(
+            parsedData.selfRatings.map(r => [
+                r["Emp ID"],
+                r
+            ])
         );
 
-        const result = await response.json();
+        const appraiserMap = Object.fromEntries(
+            parsedData.appraiserRatings.map(r => [
+                r["Emp ID"],
+                r
+            ])
+        );
 
-        const output =
-            result.choices?.[0]?.message?.content ||
-            JSON.stringify(result, null, 2);
+        const projectMap = Object.fromEntries(
+            parsedData.projectMetrics.map(r => [
+                r["Project"],
+                r
+            ])
+        );
 
-        document.getElementById('aiOutput').innerText = output;
+        masterMatrix = parsedData.employeeMaster.map(emp => {
 
-    } catch (err) {
+            const empId = emp["Emp ID"];
 
-        console.error(err);
+            const project = emp["Project"];
 
-        document.getElementById('aiOutput').innerText =
-            "Error calling Groq API.";
+            const self = selfMap[empId] || {};
 
+            const appraiser = appraiserMap[empId] || {};
+
+            const projectMetric = projectMap[project] || {};
+
+            const selfScore =
+                parseFloat(self["Weighted Score"]) || 0;
+
+            const appraiserScore =
+                parseFloat(appraiser["Weighted Score"]) || 0;
+
+            const complexity =
+                parseFloat(
+                    projectMetric["Project Complexity Factor"]
+                ) || 1;
+
+            const finalScore =
+                Number(
+                    (appraiserScore * complexity).toFixed(2)
+                );
+
+            return {
+
+                empId,
+                name: emp["Name"],
+                project,
+                manager: emp["Manager"],
+
+                selfScore,
+                appraiserScore,
+                complexity,
+                finalScore
+            };
+
+        });
     }
 
-    document.getElementById('loading').classList.add('hidden');
-}
 
-window.onload = loadSheetData;
+    /*
+    ============================================================
+    KPI CARDS
+    ============================================================
+    */
+
+    function calculateKPIs() {
+
+        const count = masterMatrix.length;
+
+        if (!count) return;
+
+        const avgAppraiser =
+            masterMatrix.reduce(
+                (a, b) => a + b.appraiserScore,
+                0
+            ) / count;
+
+        const avgComplexity =
+            masterMatrix.reduce(
+                (a, b) => a + b.complexity,
+                0
+            ) / count;
+
+        const avgFinal =
+            masterMatrix.reduce(
+                (a, b) => a + b.finalScore,
+                0
+            ) / count;
+
+        document.getElementById("headcount").innerText = count;
+
+        document.getElementById("avgAppraiser").innerText =
+            avgAppraiser.toFixed(2);
+
+        document.getElementById("avgComplexity").innerText =
+            avgComplexity.toFixed(2);
+
+        document.getElementById("avgFinal").innerText =
+            avgFinal.toFixed(2);
+    }
+
+
+    /*
+    ============================================================
+    TABLE
+    ============================================================
+    */
+
+    function renderTable() {
+
+        const tbody =
+            document.getElementById("tableBody");
+
+        tbody.innerHTML = masterMatrix.map(row => `
+
+            <tr class="border-b border-slate-700 hover:bg-slate-700/30">
+
+                <td class="p-3">${row.empId}</td>
+
+                <td class="p-3 font-medium">
+                    ${row.name}
+                </td>
+
+                <td class="p-3">
+                    ${row.project}
+                </td>
+
+                <td class="p-3 text-center">
+                    ${row.selfScore}
+                </td>
+
+                <td class="p-3 text-center">
+                    ${row.appraiserScore}
+                </td>
+
+                <td class="p-3 text-center text-indigo-400">
+                    ${row.complexity}
+                </td>
+
+                <td class="p-3 text-right text-amber-400 font-bold">
+                    ${row.finalScore}
+                </td>
+
+            </tr>
+
+        `).join('');
+    }
+
+
+    /*
+    ============================================================
+    CHART
+    ============================================================
+    */
+
+    function renderChart() {
+
+        const tiers = {
+
+            "Low": 0,
+            "Target": 0,
+            "High": 0,
+            "Exceptional": 0
+        };
+
+        masterMatrix.forEach(item => {
+
+            if (item.finalScore < 2.5)
+                tiers.Low++;
+
+            else if (item.finalScore < 4)
+                tiers.Target++;
+
+            else if (item.finalScore < 5)
+                tiers.High++;
+
+            else
+                tiers.Exceptional++;
+        });
+
+        const ctx =
+            document.getElementById("scoreChart");
+
+        if (chartInstance)
+            chartInstance.destroy();
+
+        chartInstance = new Chart(ctx, {
+
+            type: 'bar',
+
+            data: {
+
+                labels: Object.keys(tiers),
+
+                datasets: [{
+                    data: Object.values(tiers)
+                }]
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+
+    /*
+    ============================================================
+    STATUS
+    ============================================================
+    */
+
+    function setStatus(message, color) {
+
+        const box =
+            document.getElementById("statusBox");
+
+        box.innerText = message;
+
+        box.className =
+            `rounded-lg p-4 text-sm border`;
+
+        if (color === "green") {
+            box.classList.add(
+                "bg-emerald-900/30",
+                "border-emerald-700",
+                "text-emerald-300"
+            );
+        }
+
+        else if (color === "red") {
+            box.classList.add(
+                "bg-red-900/30",
+                "border-red-700",
+                "text-red-300"
+            );
+        }
+
+        else {
+            box.classList.add(
+                "bg-blue-900/30",
+                "border-blue-700",
+                "text-blue-300"
+            );
+        }
+    }
 
 </script>
 
