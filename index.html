@@ -1,362 +1,427 @@
-     <!DOCTYPE html>
+```html
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HR Performance Analytics Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <title>Talent Calibration Dashboard</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
 </head>
 
-<body class="bg-slate-900 text-white min-h-screen p-6">
+<body class="bg-slate-950 text-white min-h-screen p-6">
 
-    <div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-6">
 
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold">Talent Calibration Dashboard</h1>
-                <p class="text-slate-400 text-sm">
-                    Live Google Sheets Integration
-                </p>
-            </div>
+    <!-- HEADER -->
 
-            <button
-                onclick="refreshAllData()"
-                class="bg-indigo-600 hover:bg-indigo-500 px-5 py-2 rounded-lg font-medium"
-            >
-                🔄 Sync Data
-            </button>
+    <div class="flex items-center justify-between">
+
+        <div>
+            <h1 class="text-4xl font-bold">
+                Talent Calibration Dashboard
+            </h1>
+
+            <p class="text-slate-400 mt-1">
+                Live Google Sheets XLSX Integration
+            </p>
         </div>
 
-        <div
-            id="statusBox"
-            class="bg-slate-800 border border-slate-700 rounded-lg p-4 text-sm"
+        <button
+            onclick="refreshDashboard()"
+            class="bg-indigo-600 hover:bg-indigo-500 px-5 py-3 rounded-xl font-semibold shadow-lg"
         >
-            Waiting for sync...
+            🔄 Sync Data
+        </button>
+
+    </div>
+
+
+    <!-- STATUS -->
+
+    <div
+        id="status"
+        class="bg-slate-800 border border-slate-700 rounded-xl p-4"
+    >
+        Waiting for sync...
+    </div>
+
+
+    <!-- KPI CARDS -->
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+        <div class="bg-slate-900 rounded-xl p-5 border border-slate-800">
+            <p class="text-slate-400 text-sm">Headcount</p>
+            <h2 id="headcount" class="text-4xl font-bold mt-2">--</h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-            <div class="bg-slate-800 p-5 rounded-xl">
-                <p class="text-slate-400 text-sm">Headcount</p>
-                <h2 id="headcount" class="text-3xl font-bold mt-2">--</h2>
-            </div>
-
-            <div class="bg-slate-800 p-5 rounded-xl">
-                <p class="text-slate-400 text-sm">Avg Appraiser</p>
-                <h2 id="avgAppraiser" class="text-3xl font-bold mt-2 text-emerald-400">--</h2>
-            </div>
-
-            <div class="bg-slate-800 p-5 rounded-xl">
-                <p class="text-slate-400 text-sm">Avg Complexity</p>
-                <h2 id="avgComplexity" class="text-3xl font-bold mt-2 text-indigo-400">--</h2>
-            </div>
-
-            <div class="bg-slate-800 p-5 rounded-xl">
-                <p class="text-slate-400 text-sm">Avg Final Score</p>
-                <h2 id="avgFinal" class="text-3xl font-bold mt-2 text-amber-400">--</h2>
-            </div>
-
+        <div class="bg-slate-900 rounded-xl p-5 border border-slate-800">
+            <p class="text-slate-400 text-sm">Avg Appraiser</p>
+            <h2 id="avgAppraiser" class="text-4xl font-bold mt-2 text-emerald-400">--</h2>
         </div>
 
-        <div class="bg-slate-800 rounded-xl overflow-hidden">
-
-            <div class="p-4 border-b border-slate-700">
-                <h3 class="font-semibold">Employee Calibration Matrix</h3>
-            </div>
-
-            <div class="overflow-x-auto">
-
-                <table class="w-full text-sm">
-
-                    <thead class="bg-slate-900 text-slate-300">
-                        <tr>
-                            <th class="p-3 text-left">Emp ID</th>
-                            <th class="p-3 text-left">Name</th>
-                            <th class="p-3 text-left">Project</th>
-                            <th class="p-3 text-center">Self</th>
-                            <th class="p-3 text-center">Appraiser</th>
-                            <th class="p-3 text-center">Complexity</th>
-                            <th class="p-3 text-right">Final</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="tableBody">
-                        <tr>
-                            <td colspan="7" class="text-center p-8 text-slate-500">
-                                No data loaded
-                            </td>
-                        </tr>
-                    </tbody>
-
-                </table>
-
-            </div>
+        <div class="bg-slate-900 rounded-xl p-5 border border-slate-800">
+            <p class="text-slate-400 text-sm">Avg Complexity</p>
+            <h2 id="avgComplexity" class="text-4xl font-bold mt-2 text-indigo-400">--</h2>
         </div>
 
-        <div class="bg-slate-800 rounded-xl p-6 h-[450px]">
-            <canvas id="scoreChart"></canvas>
+        <div class="bg-slate-900 rounded-xl p-5 border border-slate-800">
+            <p class="text-slate-400 text-sm">Avg Final Score</p>
+            <h2 id="avgFinal" class="text-4xl font-bold mt-2 text-amber-400">--</h2>
         </div>
 
     </div>
+
+
+    <!-- TABLE -->
+
+    <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+
+        <div class="p-5 border-b border-slate-800">
+            <h3 class="text-xl font-semibold">
+                Employee Calibration Matrix
+            </h3>
+        </div>
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-sm">
+
+                <thead class="bg-slate-950 text-slate-300">
+
+                    <tr>
+
+                        <th class="p-4 text-left">Emp ID</th>
+                        <th class="p-4 text-left">Name</th>
+                        <th class="p-4 text-left">Project</th>
+                        <th class="p-4 text-center">Self</th>
+                        <th class="p-4 text-center">Appraiser</th>
+                        <th class="p-4 text-center">Complexity</th>
+                        <th class="p-4 text-right">Final</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="tableBody">
+
+                    <tr>
+                        <td colspan="7" class="text-center p-10 text-slate-500">
+                            No data loaded
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- CHART -->
+
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 h-[450px]">
+
+        <canvas id="scoreChart"></canvas>
+
+    </div>
+
+</div>
+
 
 <script>
 
     /*
     ============================================================
-    GOOGLE SHEETS CONFIGURATION
+    GOOGLE SHEETS XLSX EXPORT URL
     ============================================================
-
-    IMPORTANT:
-    Publish EACH SHEET individually as CSV.
 
     File → Share → Publish to web
 
-    Choose:
-    - Sheet name
-    - CSV format
+    Publish ENTIRE DOCUMENT.
 
-    Then paste URLs below.
+    Then use:
+
+    https://docs.google.com/spreadsheets/d/e/SPREADSHEET_ID/pub?output=xlsx
     */
 
-    const SHEETS = {
-
-        employeeMaster:
-            "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIMi-osLQjTUoIWI-RDHkzZFqPL1AgZlbv7qZp3B78IcP1i7xeYznxgVX5fcj3q2kTLJlv3JLh1tT/pub?gid=843812363&single=true&output=csv",
-
-        projectMetrics:
-            "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIMi-osLQjTUoIWI-RDHkzZFqPL1AgZlbv7qZp3B78IcP1i7xeYznxgVX5fcj3q2kTLJlv3JLh1tT/pub?gid=746786334&single=true&output=csv",
-
-        selfRatings:
-            "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIMi-osLQjTUoIWI-RDHkzZFqPL1AgZlbv7qZp3B78IcP1i7xeYznxgVX5fcj3q2kTLJlv3JLh1tT/pub?gid=1510109769&single=true&output=csv",
-
-        appraiserRatings:
-            "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIMi-osLQjTUoIWI-RDHkzZFqPL1AgZlbv7qZp3B78IcP1i7xeYznxgVX5fcj3q2kTLJlv3JLh1tT/pub?gid=477035412&single=true&output=csv"
-    };
+    const XLSX_URL =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIMi-osLQjTUoIWI-RDHkzZFqPL1AgZlbv7qZp3B78IcP1i7xeYznxgVX5fcj3q2kTLJlv3JLh1tT/pub?output=xlsx";
 
 
     /*
     ============================================================
-    GLOBAL DATA
+    GLOBALS
     ============================================================
     */
-
-    let parsedData = {
-        employeeMaster: [],
-        projectMetrics: [],
-        selfRatings: [],
-        appraiserRatings: []
-    };
-
-    let masterMatrix = [];
 
     let chartInstance = null;
 
+    let masterMatrix = [];
+
 
     /*
     ============================================================
-    CSV PARSER
+    STATUS
     ============================================================
     */
 
-    function splitCSVLine(line) {
+    function setStatus(message, type = "info") {
 
-        let result = [];
-        let current = '';
-        let inQuotes = false;
+        const el = document.getElementById("status");
 
-        for (let i = 0; i < line.length; i++) {
+        el.innerText = message;
 
-            const char = line[i];
+        el.className =
+            "rounded-xl p-4 border";
 
-            if (char === '"') {
-                inQuotes = !inQuotes;
-            }
-            else if (char === ',' && !inQuotes) {
-                result.push(current.trim());
-                current = '';
-            }
-            else {
-                current += char;
-            }
+        if (type === "success") {
+
+            el.classList.add(
+                "bg-emerald-950/40",
+                "border-emerald-700",
+                "text-emerald-300"
+            );
         }
 
-        result.push(current.trim());
+        else if (type === "error") {
 
-        return result.map(v =>
-            v.replace(/^"(.*)"$/, '$1')
-        );
+            el.classList.add(
+                "bg-red-950/40",
+                "border-red-700",
+                "text-red-300"
+            );
+        }
+
+        else {
+
+            el.classList.add(
+                "bg-blue-950/40",
+                "border-blue-700",
+                "text-blue-300"
+            );
+        }
     }
 
-    function parseCSV(text) {
 
-        const lines = text
-            .split('\n')
-            .map(l => l.trim())
-            .filter(Boolean);
+    /*
+    ============================================================
+    LOAD XLSX
+    ============================================================
+    */
 
-        if (!lines.length) return [];
+    async function loadWorkbook() {
 
-        const headers = splitCSVLine(lines[0]);
+        const response = await fetch(XLSX_URL);
 
-        return lines.slice(1).map(line => {
+        if (!response.ok) {
+            throw new Error("Failed to fetch XLSX workbook");
+        }
 
-            const values = splitCSVLine(line);
+        const arrayBuffer = await response.arrayBuffer();
 
-            let row = {};
-
-            headers.forEach((header, index) => {
-                row[header] = values[index] || '';
-            });
-
-            return row;
+        return XLSX.read(arrayBuffer, {
+            type: "array"
         });
     }
 
 
     /*
     ============================================================
-    FETCH SHEET
+    CONVERT SHEET TO JSON
     ============================================================
     */
 
-    async function fetchSheet(url) {
+    function getSheet(workbook, sheetName) {
 
-        const response = await fetch(url);
+        const worksheet = workbook.Sheets[sheetName];
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch: ${url}`);
+        if (!worksheet) {
+            throw new Error(`Sheet not found: ${sheetName}`);
         }
 
-        const csv = await response.text();
-
-        return parseCSV(csv);
+        return XLSX.utils.sheet_to_json(
+            worksheet,
+            {
+                raw: false,
+                defval: ""
+            }
+        );
     }
 
 
     /*
     ============================================================
-    REFRESH ALL DATA
+    MAIN SYNC
     ============================================================
     */
 
-    async function refreshAllData() {
+    async function refreshDashboard() {
 
         try {
 
-            setStatus("Loading Google Sheets data...", "blue");
+            setStatus(
+                "Loading workbook...",
+                "info"
+            );
 
-            const [
-                employeeMaster,
-                projectMetrics,
-                selfRatings,
-                appraiserRatings
-            ] = await Promise.all([
+            const workbook =
+                await loadWorkbook();
 
-                fetchSheet(SHEETS.employeeMaster),
-                fetchSheet(SHEETS.projectMetrics),
-                fetchSheet(SHEETS.selfRatings),
-                fetchSheet(SHEETS.appraiserRatings)
+            /*
+            ====================================================
+            SHEET NAMES
+            ====================================================
+            */
 
-            ]);
+            const employeeMaster =
+                getSheet(workbook, "Employee_Master");
 
-            parsedData.employeeMaster = employeeMaster;
-            parsedData.projectMetrics = projectMetrics;
-            parsedData.selfRatings = selfRatings;
-            parsedData.appraiserRatings = appraiserRatings;
+            const projectMetrics =
+                getSheet(workbook, "Project_Metrics");
 
-            compileMasterMatrix();
+            const selfRatings =
+                getSheet(workbook, "Self_Ratings_Data");
 
-            calculateKPIs();
+            const appraiserRatings =
+                getSheet(workbook, "Appraiser_Ratings_Data");
+
+
+            /*
+            ====================================================
+            LOOKUP MAPS
+            ====================================================
+            */
+
+            const selfMap = {};
+            const appraiserMap = {};
+            const projectMap = {};
+
+            selfRatings.forEach(r => {
+
+                const empId =
+                    String(r["Emp ID"]).trim();
+
+                selfMap[empId] = r;
+            });
+
+            appraiserRatings.forEach(r => {
+
+                const empId =
+                    String(r["Emp ID"]).trim();
+
+                appraiserMap[empId] = r;
+            });
+
+            projectMetrics.forEach(r => {
+
+                const project =
+                    String(r["Project"]).trim();
+
+                projectMap[project] = r;
+            });
+
+
+            /*
+            ====================================================
+            BUILD MASTER MATRIX
+            ====================================================
+            */
+
+            masterMatrix = employeeMaster.map(emp => {
+
+                const empId =
+                    String(emp["Emp ID"]).trim();
+
+                const project =
+                    String(emp["Project"]).trim();
+
+                const self =
+                    selfMap[empId] || {};
+
+                const appraiser =
+                    appraiserMap[empId] || {};
+
+                const metric =
+                    projectMap[project] || {};
+
+                const selfScore =
+                    parseFloat(
+                        self["Weighted Score"]
+                    ) || 0;
+
+                const appraiserScore =
+                    parseFloat(
+                        appraiser["Weighted Score"]
+                    ) || 0;
+
+                const complexity =
+                    parseFloat(
+                        metric["Project Complexity Factor"]
+                    ) || 1;
+
+                const finalScore =
+                    Number(
+                        (appraiserScore * complexity)
+                        .toFixed(2)
+                    );
+
+                return {
+
+                    empId,
+
+                    name:
+                        emp["Name"] || "",
+
+                    manager:
+                        emp["Manager"] || "",
+
+                    project,
+
+                    selfScore,
+
+                    appraiserScore,
+
+                    complexity,
+
+                    finalScore
+                };
+            });
+
+
+            renderKPIs();
 
             renderTable();
 
             renderChart();
 
-            setStatus("Dashboard synced successfully.", "green");
+            setStatus(
+                "Dashboard synced successfully.",
+                "success"
+            );
 
         }
+
         catch (err) {
 
             console.error(err);
 
-            setStatus(err.message, "red");
+            setStatus(
+                err.message,
+                "error"
+            );
         }
-    }
-
-
-    /*
-    ============================================================
-    COMPILE MATRIX
-    ============================================================
-    */
-
-    function compileMasterMatrix() {
-
-        const selfMap = Object.fromEntries(
-            parsedData.selfRatings.map(r => [
-                r["Emp ID"],
-                r
-            ])
-        );
-
-        const appraiserMap = Object.fromEntries(
-            parsedData.appraiserRatings.map(r => [
-                r["Emp ID"],
-                r
-            ])
-        );
-
-        const projectMap = Object.fromEntries(
-            parsedData.projectMetrics.map(r => [
-                r["Project"],
-                r
-            ])
-        );
-
-        masterMatrix = parsedData.employeeMaster.map(emp => {
-
-            const empId = emp["Emp ID"];
-
-            const project = emp["Project"];
-
-            const self = selfMap[empId] || {};
-
-            const appraiser = appraiserMap[empId] || {};
-
-            const projectMetric = projectMap[project] || {};
-
-            const selfScore =
-                parseFloat(self["Weighted Score"]) || 0;
-
-            const appraiserScore =
-                parseFloat(appraiser["Weighted Score"]) || 0;
-
-            const complexity =
-                parseFloat(
-                    projectMetric["Project Complexity Factor"]
-                ) || 1;
-
-            const finalScore =
-                Number(
-                    (appraiserScore * complexity).toFixed(2)
-                );
-
-            return {
-
-                empId,
-                name: emp["Name"],
-                project,
-                manager: emp["Manager"],
-
-                selfScore,
-                appraiserScore,
-                complexity,
-                finalScore
-            };
-
-        });
     }
 
 
@@ -366,11 +431,10 @@
     ============================================================
     */
 
-    function calculateKPIs() {
+    function renderKPIs() {
 
-        const count = masterMatrix.length;
-
-        if (!count) return;
+        const count =
+            masterMatrix.length;
 
         const avgAppraiser =
             masterMatrix.reduce(
@@ -390,16 +454,17 @@
                 0
             ) / count;
 
-        document.getElementById("headcount").innerText = count;
+        document.getElementById("headcount")
+            .innerText = count;
 
-        document.getElementById("avgAppraiser").innerText =
-            avgAppraiser.toFixed(2);
+        document.getElementById("avgAppraiser")
+            .innerText = avgAppraiser.toFixed(2);
 
-        document.getElementById("avgComplexity").innerText =
-            avgComplexity.toFixed(2);
+        document.getElementById("avgComplexity")
+            .innerText = avgComplexity.toFixed(2);
 
-        document.getElementById("avgFinal").innerText =
-            avgFinal.toFixed(2);
+        document.getElementById("avgFinal")
+            .innerText = avgFinal.toFixed(2);
     }
 
 
@@ -414,39 +479,40 @@
         const tbody =
             document.getElementById("tableBody");
 
-        tbody.innerHTML = masterMatrix.map(row => `
+        tbody.innerHTML =
+            masterMatrix.map(row => `
 
-            <tr class="border-b border-slate-700 hover:bg-slate-700/30">
+                <tr class="border-b border-slate-800 hover:bg-slate-800/40">
 
-                <td class="p-3">${row.empId}</td>
+                    <td class="p-4">${row.empId}</td>
 
-                <td class="p-3 font-medium">
-                    ${row.name}
-                </td>
+                    <td class="p-4 font-semibold">
+                        ${row.name}
+                    </td>
 
-                <td class="p-3">
-                    ${row.project}
-                </td>
+                    <td class="p-4">
+                        ${row.project}
+                    </td>
 
-                <td class="p-3 text-center">
-                    ${row.selfScore}
-                </td>
+                    <td class="p-4 text-center">
+                        ${row.selfScore}
+                    </td>
 
-                <td class="p-3 text-center">
-                    ${row.appraiserScore}
-                </td>
+                    <td class="p-4 text-center">
+                        ${row.appraiserScore}
+                    </td>
 
-                <td class="p-3 text-center text-indigo-400">
-                    ${row.complexity}
-                </td>
+                    <td class="p-4 text-center text-indigo-400">
+                        ${row.complexity}
+                    </td>
 
-                <td class="p-3 text-right text-amber-400 font-bold">
-                    ${row.finalScore}
-                </td>
+                    <td class="p-4 text-right text-amber-400 font-bold">
+                        ${row.finalScore}
+                    </td>
 
-            </tr>
+                </tr>
 
-        `).join('');
+            `).join('');
     }
 
 
@@ -458,27 +524,27 @@
 
     function renderChart() {
 
-        const tiers = {
+        const buckets = {
 
-            "Low": 0,
-            "Target": 0,
-            "High": 0,
-            "Exceptional": 0
+            Low: 0,
+            Target: 0,
+            High: 0,
+            Exceptional: 0
         };
 
-        masterMatrix.forEach(item => {
+        masterMatrix.forEach(emp => {
 
-            if (item.finalScore < 2.5)
-                tiers.Low++;
+            if (emp.finalScore < 2.5)
+                buckets.Low++;
 
-            else if (item.finalScore < 4)
-                tiers.Target++;
+            else if (emp.finalScore < 4)
+                buckets.Target++;
 
-            else if (item.finalScore < 5)
-                tiers.High++;
+            else if (emp.finalScore < 5)
+                buckets.High++;
 
             else
-                tiers.Exceptional++;
+                buckets.Exceptional++;
         });
 
         const ctx =
@@ -489,14 +555,16 @@
 
         chartInstance = new Chart(ctx, {
 
-            type: 'bar',
+            type: "bar",
 
             data: {
 
-                labels: Object.keys(tiers),
+                labels:
+                    Object.keys(buckets),
 
                 datasets: [{
-                    data: Object.values(tiers)
+                    data:
+                        Object.values(buckets)
                 }]
             },
 
@@ -507,6 +575,7 @@
                 maintainAspectRatio: false,
 
                 plugins: {
+
                     legend: {
                         display: false
                     }
@@ -515,49 +584,8 @@
         });
     }
 
-
-    /*
-    ============================================================
-    STATUS
-    ============================================================
-    */
-
-    function setStatus(message, color) {
-
-        const box =
-            document.getElementById("statusBox");
-
-        box.innerText = message;
-
-        box.className =
-            `rounded-lg p-4 text-sm border`;
-
-        if (color === "green") {
-            box.classList.add(
-                "bg-emerald-900/30",
-                "border-emerald-700",
-                "text-emerald-300"
-            );
-        }
-
-        else if (color === "red") {
-            box.classList.add(
-                "bg-red-900/30",
-                "border-red-700",
-                "text-red-300"
-            );
-        }
-
-        else {
-            box.classList.add(
-                "bg-blue-900/30",
-                "border-blue-700",
-                "text-blue-300"
-            );
-        }
-    }
-
 </script>
 
 </body>
 </html>
+```
